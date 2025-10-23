@@ -1,0 +1,29 @@
+{
+  "name": "kesk",
+  "version": "1.0.0",
+  "description": "Node.js SSR site showcasing contextHub repository content",
+  "main": "src/server.js",
+  "scripts": {
+    "dev": "nodemon src/server.js",
+    "dev:css": "tailwindcss -i ./src/styles/tailwind.css -o ./public/assets/tailwind.css --watch",
+    "build:css": "tailwindcss -i ./src/styles/tailwind.css -o ./public/assets/tailwind.css --minify",
+    "start": "node src/server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "ejs": "^3.1.10",
+    "express": "^5.1.0",
+    "dotenv": "^16.4.5",
+    "he": "^1.2.0",
+    "compression": "^1.7.4",
+    "undici": "^6.20.1"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.21",
+    "nodemon": "^3.1.10",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^3.4.15"
+  }
+}

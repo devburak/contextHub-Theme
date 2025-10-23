@@ -1,0 +1,65 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply font-sans antialiased;
+  }
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply tracking-tight;
+  }
+}
+
+@layer components {
+  .content-body {
+    @apply space-y-4 text-base leading-relaxed text-slate-800;
+  }
+
+  .content-body h2 {
+    @apply text-2xl font-semibold text-slate-900;
+  }
+
+  .content-body h3 {
+    @apply text-xl font-semibold text-slate-900;
+  }
+
+  .content-body p {
+    @apply text-base leading-relaxed;
+  }
+
+  .content-body img {
+    @apply my-6 w-full rounded-2xl border border-slate-200 object-cover;
+  }
+
+  .content-body ul {
+    @apply list-disc space-y-1 pl-6;
+  }
+
+  .content-body ol {
+    @apply list-decimal space-y-1 pl-6;
+  }
+
+  .content-body blockquote {
+    @apply border-l-4 border-[var(--color-primary)] bg-slate-100/70 px-4 py-2 italic text-slate-700;
+  }
+}
+
+@layer utilities {
+  [data-provider='facebook'] {
+    @apply bg-[#1877F2];
+  }
+  [data-provider='x'] {
+    @apply bg-black;
+  }
+  [data-provider='pinterest'] {
+    @apply bg-[#E60023];
+  }
+  [data-provider='whatsapp'] {
+    @apply bg-[#25D366];
+  }
+}
+

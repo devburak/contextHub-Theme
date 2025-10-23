@@ -1,0 +1,97 @@
+<%- include('../partials/head', {
+  title: category.name,
+  description: category.description || `Latest reports from ${category.name}`
+}) %>
+  <body class="min-h-screen bg-[var(--color-background)] text-[var(--color-text)]">
+    <div class="flex min-h-screen flex-col">
+      <%- include('../partials/header') %>
+      <main class="mx-auto w-full max-w-6xl flex-1 px-4 py-10">
+        <header class="mb-10 space-y-3">
+          <p class="text-xs uppercase tracking-[0.35em] text-[var(--color-primary)]">
+            Reports
+          </p>
+          <h1 class="text-3xl font-semibold text-slate-900 sm:text-4xl">
+            <%= category.name %>
+          </h1>
+          <% if (category.description) { %>
+            <p class="max-w-3xl text-sm text-[var(--color-text-muted)]">
+              <%= category.description %>
+            </p>
+          <% } %>
+        </header>
+
+        <% if ((contents || []).length === 0) { %>
+          <div class="rounded-3xl border border-dashed border-[var(--color-border)] bg-white/60 p-12 text-center text-sm text-[var(--color-text-muted)] shadow-sm shadow-black/5">
+            No content has been published under this category yet. Please check back later.
+          </div>
+        <% } else { %>
+          <div class="grid gap-6 md:grid-cols-2">
+            <% contents.forEach((item) => { %>
+              <article class="group flex h-full flex-col overflow-hidden rounded-3xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-sm shadow-black/5 transition hover:-translate-y-1 hover:shadow-lg">
+                <% if (item.heroImage?.url) { %>
+                  <a href="/content/<%= item.slug %>?id=<%= item.id %>" class="aspect-[16/9] overflow-hidden">
+                    <img
+                      src="<%= item.heroImage.url %>"
+                      alt="<%= item.heroImage.alt || item.title %>"
+                      class="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                    />
+                  </a>
+                <% } %>
+                <div class="flex flex-1 flex-col gap-3 p-6">
+                  <p class="text-xs uppercase tracking-widest text-[var(--color-primary)]">
+                    <%= item.formattedPublishDate || item.publishDate %>
+                  </p>
+                  <h2 class="text-lg font-semibold text-slate-900">
+                    <a href="/content/<%= item.slug %>?id=<%= item.id %>" class="transition hover:text-[var(--color-primary)]">
+                      <%= item.title %>
+                    </a>
+                  </h2>
+                  <p class="text-sm text-[var(--color-text-muted)]">
+                    <%= item.summary %>
+                  </p>
+                  <div class="mt-auto">
+                    <a
+                      href="/content/<%= item.slug %>?id=<%= item.id %>"
+                      class="inline-flex items-center gap-2 text-sm font-medium text-[var(--color-primary)] transition hover:gap-3"
+                    >
+                      Read more
+                      <span aria-hidden="true">→</span>
+                    </a>
+                  </div>
+                </div>
+              </article>
+            <% }) %>
+          </div>
+
+          <% if (pagination && pagination.pages > 1) { %>
+            <nav class="mt-10 flex items-center justify-between gap-4 rounded-full border border-[var(--color-border)] bg-white px-4 py-2 text-sm text-[var(--color-text-muted)] shadow-sm shadow-black/5">
+              <% const hasPrev = pagination.page > 1; %>
+              <% const hasNext = pagination.page < pagination.pages; %>
+              <a
+                href="<%= hasPrev ? `/category/${category.slug}?page=${pagination.page - 1}` : '#' %>"
+                class="inline-flex items-center gap-2 rounded-full px-3 py-1 font-medium transition <%= hasPrev ? 'text-[var(--color-primary)] hover:-translate-x-0.5' : 'pointer-events-none opacity-40' %>"
+              >
+                <span aria-hidden="true">←</span>
+                Previous
+              </a>
+              <div class="flex items-center gap-2">
+                <span>Page <%= pagination.page %> of <%= pagination.pages %></span>
+                <span class="hidden sm:inline">·</span>
+                <span class="hidden sm:inline"><%= pagination.total %> entries</span>
+              </div>
+              <a
+                href="<%= hasNext ? `/category/${category.slug}?page=${pagination.page + 1}` : '#' %>"
+                class="inline-flex items-center gap-2 rounded-full px-3 py-1 font-medium transition <%= hasNext ? 'text-[var(--color-primary)] hover:translate-x-0.5' : 'pointer-events-none opacity-40' %>"
+              >
+                Next
+                <span aria-hidden="true">→</span>
+              </a>
+            </nav>
+          <% } %>
+        <% } %>
+      </main>
+      <%- include('../partials/footer') %>
+    </div>
+  </body>
+</html>
+

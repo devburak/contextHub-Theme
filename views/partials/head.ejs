@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <% const pageTitle = title ? `${title} · ${theme.siteName}` : theme.siteName; %>
+    <title><%= pageTitle %></title>
+    <% if (description) { %>
+      <meta name="description" content="<%= description %>" />
+    <% } %>
+    <% if (tenant?.slug) { %>
+      <meta name="contexthub-tenant" content="<%= tenant.slug %>" />
+    <% } %>
+    <% if (theme.faviconUrl) { %>
+      <link rel="icon" href="<%= theme.faviconUrl %>" />
+    <% } %>
+    <link rel="stylesheet" href="/assets/tailwind.css" />
+    <style>
+      :root {
+        --color-primary: <%= theme.primaryColor %>;
+        --color-secondary: <%= theme.secondaryColor %>;
+        --color-accent: <%= theme.accentColor %>;
+        --color-background: <%= theme.backgroundColor %>;
+        --color-surface: <%= theme.surfaceColor %>;
+        --color-text: <%= theme.textColor %>;
+        --color-text-muted: <%= theme.mutedTextColor %>;
+        --color-border: <%= theme.borderColor %>;
+      }
+    </style>
+  </head>

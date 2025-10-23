@@ -1,0 +1,28 @@
+<div class="flex flex-wrap items-center gap-3">
+  <% (links || []).forEach((link) => { %>
+    <a
+      href="<%= link.url %>"
+      target="_blank"
+      rel="noreferrer"
+      class="inline-flex h-10 w-10 items-center justify-center rounded-full text-white transition"
+      data-provider="<%= link.provider %>"
+    >
+      <% if (link.provider === 'facebook') { %>
+        <span class="sr-only">Share on Facebook</span>
+        <span aria-hidden="true" class="text-lg font-semibold">f</span>
+      <% } else if (link.provider === 'x') { %>
+        <span class="sr-only">Share on X</span>
+        <span aria-hidden="true" class="text-lg font-semibold">𝕏</span>
+      <% } else if (link.provider === 'pinterest') { %>
+        <span class="sr-only">Share on Pinterest</span>
+        <span aria-hidden="true" class="text-lg font-semibold">P</span>
+      <% } else if (link.provider === 'whatsapp') { %>
+        <span class="sr-only">Share on WhatsApp</span>
+        <span aria-hidden="true" class="text-lg font-semibold">☏</span>
+      <% } else { %>
+        <span class="sr-only">Share</span>
+        <span aria-hidden="true" class="text-lg font-semibold">↗</span>
+      <% } %>
+    </a>
+  <% }) %>
+</div>

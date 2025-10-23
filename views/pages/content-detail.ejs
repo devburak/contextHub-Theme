@@ -1,0 +1,80 @@
+<%- include('../partials/head', {
+  title: content.title,
+  description: content.summary
+}) %>
+  <body class="min-h-screen bg-[var(--color-background)] text-[var(--color-text)]">
+    <div class="flex min-h-screen flex-col">
+      <%- include('../partials/header') %>
+      <main class="mx-auto w-full max-w-4xl flex-1 px-4 py-10">
+        <nav class="mb-6 text-xs text-[var(--color-text-muted)]">
+          <ol class="flex flex-wrap items-center gap-2">
+            <% (content.breadcrumbs || []).forEach((crumb, index) => { %>
+              <li class="flex items-center gap-2">
+                <% if (crumb.href) { %>
+                  <a href="<%= crumb.href %>" class="font-medium text-[var(--color-primary)] hover:underline">
+                    <%= crumb.label %>
+                  </a>
+                <% } else { %>
+                  <span><%= crumb.label %></span>
+                <% } %>
+                <% if (index !== (content.breadcrumbs.length - 1)) { %>
+                  <span aria-hidden="true">›</span>
+                <% } %>
+              </li>
+            <% }) %>
+          </ol>
+        </nav>
+
+        <article class="overflow-hidden rounded-3xl bg-[var(--color-surface)] shadow-lg shadow-black/5">
+          <header class="space-y-4 border-b border-[var(--color-border)] px-6 py-8">
+            <p class="text-xs uppercase tracking-widest text-[var(--color-primary)]">
+              <%= content.formattedPublishDate || content.publishDate %>
+            </p>
+            <h1 class="text-3xl font-semibold text-slate-900 sm:text-4xl">
+              <%= content.title %>
+            </h1>
+            <% if ((content.categories || []).length) { %>
+              <div class="flex flex-wrap items-center gap-2 text-xs uppercase tracking-wide text-[var(--color-text-muted)]">
+                <% content.categories.forEach((category) => { %>
+                  <a
+                    href="/category/<%= category.slug %>"
+                    class="inline-flex items-center gap-2 rounded-full border border-[var(--color-border)] px-3 py-1 text-[var(--color-primary)] transition hover:-translate-y-0.5 hover:border-[var(--color-primary)]"
+                  >
+                    <span aria-hidden="true">#</span>
+                    <%= category.name %>
+                  </a>
+                <% }) %>
+              </div>
+            <% } %>
+            <div>
+              <%- include('../partials/share-buttons', { links: content.shareLinks }) %>
+            </div>
+          </header>
+
+          <% if (content.heroImage?.url) { %>
+            <div class="relative">
+              <img
+                src="<%= content.heroImage.url %>"
+                alt="<%= content.heroImage.alt || content.title %>"
+                class="h-full w-full object-cover"
+              />
+            </div>
+          <% } %>
+
+          <div class="space-y-6 px-6 py-8 text-[var(--color-text)]">
+            <% if (content.summary) { %>
+              <p class="text-lg font-medium text-[var(--color-text-muted)]">
+                <%= content.summary %>
+              </p>
+            <% } %>
+
+            <div class="content-body">
+              <%- content.html %>
+            </div>
+          </div>
+        </article>
+      </main>
+      <%- include('../partials/footer') %>
+    </div>
+  </body>
+</html>

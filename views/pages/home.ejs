@@ -1,0 +1,139 @@
+<%- include('../partials/head', {
+  title: 'Home',
+  description: theme.hero?.description || tenant?.description
+}) %>
+  <body class="min-h-screen bg-[var(--color-background)] text-[var(--color-text)]">
+    <div class="flex min-h-screen flex-col">
+      <%- include('../partials/header') %>
+      <main class="mx-auto w-full max-w-6xl flex-1 px-4 py-10">
+        <% const allCategoryList = Array.isArray(allCategories) ? allCategories : []; %>
+        <section class="mb-12 rounded-3xl border border-[var(--color-border)] bg-[var(--color-surface)] p-1 shadow-lg shadow-black/5">
+          <% const lead = featuredContents?.[0]; %>
+          <% const others = (featuredContents || []).slice(1, 4); %>
+
+          <% if (lead) { %>
+            <% const leadCategory = allCategoryList.find((cat) => Array.isArray(lead?.categoryIds) && lead.categoryIds.includes(cat.id)); %>
+            <div class="grid gap-1 lg:grid-cols-[2.2fr,1fr]">
+              <a
+                href="/content/<%= lead.slug %>?id=<%= lead.id %>"
+                class="group relative block min-h-[320px] overflow-hidden rounded-3xl bg-slate-900 text-white"
+                style="<%= lead.heroImage?.url ? `background-image:url('${lead.heroImage.url}')` : '' %>"
+              >
+                <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/35 to-transparent"></div>
+                <div class="absolute inset-0 transition duration-500 group-hover:scale-105" style="<%= lead.heroImage?.url ? `background-image:url('${lead.heroImage.url}')` : '' %>; background-size: cover; background-position: center;"></div>
+                <div class="relative z-10 flex h-full flex-col justify-end gap-3 p-8">
+                  <span class="inline-flex w-max items-center rounded-full bg-white/20 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-white/90 backdrop-blur">
+                    <%= leadCategory ? leadCategory.name : 'Featured' %>
+                  </span>
+                  <h2 class="text-2xl font-semibold tracking-tight sm:text-3xl">
+                    <%= lead.title %>
+                  </h2>
+                  <p class="text-sm text-white/80">
+                    <%= lead.formattedPublishDate || lead.publishDate %>
+                  </p>
+                </div>
+              </a>
+
+              <div class="grid gap-1 md:grid-cols-2 lg:grid-cols-1">
+                <% others.forEach((item) => { %>
+                  <% const itemCategory = allCategoryList.find((cat) => Array.isArray(item?.categoryIds) && item.categoryIds.includes(cat.id)); %>
+                  <a
+                    href="/content/<%= item.slug %>?id=<%= item.id %>"
+                    class="group relative flex min-h-[150px] flex-col overflow-hidden rounded-3xl border border-black/5 bg-white shadow-sm shadow-black/10 transition hover:-translate-y-1 hover:shadow-lg"
+                  >
+                    <% if (item.heroImage?.url) { %>
+                      <div class="aspect-[3/2] overflow-hidden">
+                        <img
+                          src="<%= item.heroImage.url %>"
+                          alt="<%= item.heroImage.alt || item.title %>"
+                          class="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                        />
+                      </div>
+                    <% } %>
+                    <div class="flex flex-1 flex-col gap-2 p-4">
+                      <p class="text-xs uppercase tracking-widest text-[var(--color-primary)]">
+                        <%= itemCategory ? itemCategory.name : 'Latest' %>
+                      </p>
+                      <h3 class="text-base font-semibold text-slate-900">
+                        <%= item.title %>
+                      </h3>
+                      <p class="mt-auto text-xs text-[var(--color-text-muted)]">
+                        <%= item.formattedPublishDate || item.publishDate %>
+                      </p>
+                    </div>
+                  </a>
+                <% }) %>
+
+                <% if (others.length === 0) { %>
+                  <div class="flex items-center justify-center rounded-3xl border border-dashed border-[var(--color-border)] p-8 text-center text-sm text-[var(--color-text-muted)]">
+                    More reports will appear here as soon as they are published.
+                  </div>
+                <% } %>
+              </div>
+            </div>
+          <% } else { %>
+            <div class="flex flex-col items-center justify-center gap-4 px-6 py-20 text-center">
+              <h2 class="text-2xl font-semibold text-slate-900">No content yet</h2>
+              <p class="max-w-xl text-sm text-[var(--color-text-muted)]">
+                Once new reports are published they will be listed on this page automatically.
+              </p>
+            </div>
+          <% } %>
+        </section>
+
+        <% if ((featuredContents || []).length > 0) { %>
+          <section id="reports" class="mb-16 space-y-6">
+            <header>
+              <h2 class="text-xl font-semibold text-slate-900">Recent highlights</h2>
+              <p class="text-sm text-[var(--color-text-muted)]">
+                Discover the latest statements, reports and activities from the KESK confederation.
+              </p>
+            </header>
+            <div class="grid gap-6 md:grid-cols-2">
+              <% featuredContents.forEach((item) => { %>
+                <% const itemCategory = allCategoryList.find((cat) => Array.isArray(item?.categoryIds) && item.categoryIds.includes(cat.id)); %>
+                <article class="group flex flex-col overflow-hidden rounded-3xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-sm shadow-black/5 transition hover:-translate-y-1 hover:shadow-lg">
+                  <% if (item.heroImage?.url) { %>
+                    <a href="/content/<%= item.slug %>?id=<%= item.id %>" class="aspect-[16/9] overflow-hidden">
+                      <img
+                        src="<%= item.heroImage.url %>"
+                        alt="<%= item.heroImage.alt || item.title %>"
+                        class="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                      />
+                    </a>
+                  <% } %>
+                  <div class="flex flex-1 flex-col gap-3 p-6">
+                    <p class="text-xs uppercase tracking-widest text-[var(--color-primary)]">
+                      <%= itemCategory ? itemCategory.name : (item.formattedPublishDate || item.publishDate) %>
+                    </p>
+                    <p class="text-xs text-[var(--color-text-muted)]">
+                      <%= item.formattedPublishDate || item.publishDate %>
+                    </p>
+                    <h3 class="text-lg font-semibold text-slate-900">
+                      <a href="/content/<%= item.slug %>?id=<%= item.id %>" class="transition hover:text-[var(--color-primary)]">
+                        <%= item.title %>
+                      </a>
+                    </h3>
+                    <p class="text-sm text-[var(--color-text-muted)]">
+                      <%= item.summary %>
+                    </p>
+                    <div class="mt-auto">
+                      <a
+                        href="/content/<%= item.slug %>?id=<%= item.id %>"
+                        class="inline-flex items-center gap-2 text-sm font-medium text-[var(--color-primary)] transition hover:gap-3"
+                      >
+                        Read more
+                        <span aria-hidden="true">→</span>
+                      </a>
+                    </div>
+                  </div>
+                </article>
+              <% }) %>
+            </div>
+          </section>
+        <% } %>
+      </main>
+      <%- include('../partials/footer') %>
+    </div>
+  </body>
+</html>

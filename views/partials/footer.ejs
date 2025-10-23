@@ -1,0 +1,25 @@
+<footer class="border-t border-black/10 bg-[var(--color-secondary)] text-white">
+  <div class="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-6 text-sm text-white/80 sm:flex-row sm:items-center sm:justify-between">
+    <p>
+      © <%= new Date().getFullYear() %> <%= theme.siteName %>. Powered by contextHub.
+    </p>
+    <div class="flex items-center gap-3">
+      <% const footerLogo = theme.logoUrl || branding?.logoUrl; %>
+      <% if (footerLogo) { %>
+        <img
+          src="<%= footerLogo %>"
+          alt="<%= theme.siteName %> logo"
+          class="h-8 w-auto object-contain opacity-80"
+        />
+      <% } %>
+      <a
+        href="https://github.com/devburak/contextHub"
+        class="rounded-full border border-white/20 px-3 py-1 text-xs uppercase tracking-wide text-white/80 transition hover:border-white/40 hover:text-white"
+        target="_blank"
+        rel="noreferrer"
+      >
+        View source
+      </a>
+    </div>
+  </div>
+</footer>

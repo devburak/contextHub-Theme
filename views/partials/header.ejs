@@ -1,63 +1,142 @@
 <header class="bg-[var(--color-primary)] text-white shadow-lg shadow-black/30">
   <div class="border-b border-white/10">
-    <div class="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-6 sm:flex-row sm:items-center sm:justify-between">
-      <div class="flex items-center gap-4">
-        <% const logoSrc = theme.logoUrl || branding?.logoUrl; %>
-        <% if (logoSrc) { %>
-          <div class="flex h-16 w-16 items-center justify-center overflow-hidden rounded-full border border-white/20 bg-white/10">
+    <div class="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-6">
+      <% const logoSrc = theme.logoUrl || branding?.logoUrl; %>
+      <% const logoLayout = theme.logoLayout || 'fullwidth'; %>
+      <% if (logoLayout === 'fullwidth' && logoSrc) { %>
+        <div class="flex flex-col items-center gap-3 text-center">
+          <a href="/" class="inline-flex flex-col items-center gap-3">
             <img
               src="<%= logoSrc %>"
               alt="<%= theme.siteName %> logo"
-              class="max-h-full max-w-full object-contain"
+              class="max-h-28 w-full object-contain"
             />
-          </div>
-        <% } else { %>
-          <div class="flex h-16 w-16 items-center justify-center rounded-full border border-white/20 bg-white/10 text-2xl font-bold uppercase tracking-wide">
-            <%= (theme.brandName || theme.siteName || '').substring(0, 3) %>
-          </div>
-        <% } %>
-        <div>
-          <p class="text-sm uppercase tracking-[0.35em] text-white/70">
-            <%= tenant?.name || theme.brandName %>
-          </p>
-          <h1 class="text-2xl font-semibold tracking-tight sm:text-3xl">
-            <%= theme.siteName %>
-          </h1>
-        </div>
-      </div>
-      <% const primaryNav = theme.navigation || [{ label: 'Home', href: '/' }]; %>
-      <nav class="flex flex-1 flex-col gap-3 text-sm font-medium uppercase sm:flex-row sm:items-center sm:justify-end sm:gap-8">
-        <% primaryNav.forEach((item) => {
-             if (!item || !item.href) return;
-             const isActive = currentPath === item.href;
-        %>
-          <a
-            href="<%= item.href %>"
-            class="relative inline-flex items-center gap-1 tracking-wide transition
-              <%= isActive ? 'text-white after:absolute after:bottom-[-0.6rem] after:left-0 after:h-0.5 after:w-full after:bg-white' : 'text-white/80 hover:text-white' %>"
-          >
-            <span><%= item.label %></span>
+
           </a>
-        <% }) %>
-      </nav>
+        </div>
+      <% } else { %>
+        <div class="flex flex-col items-center gap-4 sm:flex-row sm:justify-between">
+          <div class="flex items-center gap-4">
+            <% if (logoSrc) { %>
+              <div class="flex h-16 w-16 items-center justify-center overflow-hidden rounded-full border border-white/20 bg-white/10">
+                <img
+                  src="<%= logoSrc %>"
+                  alt="<%= theme.siteName %> logo"
+                  class="max-h-full max-w-full object-contain"
+                />
+              </div>
+            <% } else { %>
+              <div class="flex h-16 w-16 items-center justify-center rounded-full border border-white/20 bg-white/10 text-2xl font-bold uppercase tracking-wide">
+                <%= (theme.brandName || theme.siteName || '').substring(0, 3) %>
+              </div>
+            <% } %>
+            <div>
+              <p class="text-sm uppercase tracking-[0.35em] text-white/70">
+                <%= tenant?.name || theme.brandName %>
+              </p>
+              <h1 class="text-2xl font-semibold tracking-tight sm:text-3xl">
+                <%= theme.siteName %>
+              </h1>
+            </div>
+          </div>
+          <div class="hidden sm:block">
+            <p class="text-xs uppercase tracking-[0.3em] text-white/60">
+              <%= branding?.siteName || theme.hero?.headline || '' %>
+            </p>
+          </div>
+        </div>
+      <% } %>
     </div>
   </div>
-  <% if ((categories || []).length) { %>
+  <% 
+    const menuItems = (menu && Array.isArray(menu.items) && menu.items.length)
+      ? menu.items
+      : (theme.navigation || []).map((item) => ({
+          label: item.label,
+          href: item.href,
+          target: '_self',
+          children: item.children || []
+        }));
+  %>
+  <% if (menuItems.length) { %>
     <div class="border-b border-white/5 bg-white/5 backdrop-blur">
-      <nav class="mx-auto flex max-w-6xl flex-wrap items-center gap-3 px-4 py-3 text-sm font-medium uppercase tracking-wide text-white/80">
-        <span class="text-xs font-semibold text-white/60">Categories:</span>
-        <% categories.forEach((category) => {
-             const isActiveCategory = currentPath.startsWith('/category') && currentPath.includes(`/${category.slug}`);
-        %>
+      <nav class="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3 text-sm font-medium uppercase tracking-wide text-white/80">
+        <div class="flex flex-wrap items-center gap-3">
+          <% menuItems.forEach((item) => {
+               if (!item || !item.href) return;
+               const isActive = currentPath === item.href;
+          %>
+            <div class="group relative">
+              <a
+                href="<%= item.href %>"
+                target="<%= item.target || '_self' %>"
+                class="inline-flex items-center gap-1 rounded-full border border-white/10 px-3 py-1 transition
+                  <%= isActive ? 'bg-white text-[var(--color-primary)]' : 'hover:border-white/40 hover:text-white' %>"
+              >
+                <span><%= item.label %></span>
+                <% if (item.children && item.children.length) { %>
+                  <span aria-hidden="true" class="text-xs opacity-70 transition group-hover:rotate-180">▾</span>
+                <% } %>
+              </a>
+              <% if (item.children && item.children.length) { %>
+                <div class="invisible absolute left-0 top-full z-20 mt-2 min-w-[12rem] rounded-2xl border border-white/10 bg-[var(--color-primary)]/95 p-2 opacity-0 shadow-lg shadow-black/30 backdrop-blur transition group-hover:visible group-hover:opacity-100">
+                  <ul class="space-y-1 text-xs uppercase tracking-widest text-white/80">
+                    <% item.children.forEach((child) => {
+                         if (!child || !child.href) return;
+                    %>
+                      <li>
+                        <a
+                          href="<%= child.href %>"
+                          target="<%= child.target || '_self' %>"
+                          class="block rounded-xl px-3 py-2 transition hover:bg-white/15 hover:text-white"
+                        >
+                          <%= child.label %>
+                        </a>
+                      </li>
+                    <% }) %>
+                  </ul>
+                </div>
+              <% } %>
+            </div>
+          <% }) %>
+        </div>
+        <div class="flex items-center gap-2">
           <a
-            href="/category/<%= category.slug %>"
-            class="rounded-full border border-white/10 px-3 py-1 transition
-              <%= isActiveCategory ? 'bg-white text-[var(--color-primary)]' : 'hover:border-white/40 hover:text-white' %>"
+            href="/search"
+            class="hidden text-xs font-semibold uppercase tracking-[0.3em] text-white/70 transition hover:text-white sm:inline-flex"
           >
-            <%= category.name %>
+            Search
           </a>
-        <% }) %>
+          <button
+            type="button"
+            class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/20 text-white transition hover:border-white/40 hover:text-white"
+            aria-label="Open search"
+            data-search-open
+          >
+            <i data-lucide="search" class="h-5 w-5"></i>
+          </button>
+        </div>
       </nav>
+    </div>
+  <% } else { %>
+    <div class="border-b border-white/5 bg-white/5 backdrop-blur">
+      <div class="mx-auto flex w-full max-w-6xl items-center justify-end gap-2 px-4 py-3">
+        <a
+          href="/search"
+          class="hidden text-xs font-semibold uppercase tracking-[0.3em] text-white/70 transition hover:text-white sm:inline-flex"
+        >
+          Search
+        </a>
+        <button
+          type="button"
+          class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/20 text-white transition hover:border-white/40 hover:text-white"
+          aria-label="Open search"
+          data-search-open
+        >
+          <i data-lucide="search" class="h-5 w-5"></i>
+        </button>
+      </div>
     </div>
   <% } %>
 </header>
+<%- include('../partials/search-modal') %>

@@ -1,0 +1,112 @@
+<%- include('../partials/head', {
+  title: term ? `Search · ${term}` : 'Search',
+  description: 'Search published content.'
+}) %>
+  <body class="min-h-screen bg-[var(--color-background)] text-[var(--color-text)]">
+    <div class="flex min-h-screen flex-col">
+      <%- include('../partials/header') %>
+      <main class="mx-auto w-full max-w-6xl flex-1 px-4 py-10">
+        <header class="mb-8 space-y-3">
+          <h1 class="text-3xl font-semibold text-slate-900 sm:text-4xl">Search</h1>
+          <p class="text-sm text-[var(--color-text-muted)]">
+            Enter a keyword to explore the latest statements, reports and announcements.
+          </p>
+          <%- include('../partials/search-form', { term }) %>
+        </header>
+
+        <% if (term && results.items.length === 0) { %>
+          <div class="rounded-3xl border border-dashed border-[var(--color-border)] bg-white/70 p-12 text-center text-sm text-[var(--color-text-muted)] shadow-sm shadow-black/5">
+            No content matched “<span class="font-semibold"><%= term %></span>”. Try different keywords or broaden your search.
+          </div>
+        <% } %>
+
+        <% if (results.items.length > 0) { %>
+          <% const categoryLookup = new Map((allCategories || []).map((cat) => [cat.id, cat])); %>
+          <section class="space-y-6">
+            <div class="flex items-center justify-between">
+              <h2 class="text-xl font-semibold text-slate-900">
+                Showing <%= results.items.length %> result<%= results.items.length > 1 ? 's' : '' %>
+              </h2>
+              <p class="text-xs uppercase tracking-[0.3em] text-[var(--color-text-muted)]">
+                Query: <%= term %>
+              </p>
+            </div>
+            <div class="grid gap-6 md:grid-cols-2">
+              <% results.items.forEach((item) => {
+                   const categoryId = Array.isArray(item.categoryIds) ? item.categoryIds[0] : null;
+                   const category = categoryId ? categoryLookup.get(categoryId) : null;
+              %>
+                <article class="group flex flex-col overflow-hidden rounded-3xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-sm shadow-black/5 transition hover:-translate-y-1 hover:shadow-lg">
+                  <% if (item.heroImage?.url) { %>
+                    <a href="/content/<%= item.slug %>" class="aspect-[16/9] overflow-hidden">
+                      <img
+                        src="<%= item.heroImage.url %>"
+                        alt="<%= item.heroImage.alt || item.title %>"
+                        class="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                      />
+                    </a>
+                  <% } %>
+                  <div class="flex flex-1 flex-col gap-3 p-6">
+                    <% if (category) { %>
+                      <p class="text-xs uppercase tracking-widest text-[var(--color-primary)]">
+                        <%= category.name %>
+                      </p>
+                    <% } %>
+                    <p class="text-xs text-[var(--color-text-muted)]">
+                      <%= item.formattedPublishDate || item.publishDate %>
+                    </p>
+                    <h3 class="text-lg font-semibold text-slate-900">
+                      <a href="/content/<%= item.slug %>" class="transition hover:text-[var(--color-primary)]">
+                        <%= item.title %>
+                      </a>
+                    </h3>
+                    <p class="text-sm text-[var(--color-text-muted)]">
+                      <%= item.summary %>
+                    </p>
+                    <div class="mt-auto">
+                      <a
+                        href="/content/<%= item.slug %>"
+                        class="inline-flex items-center gap-2 text-sm font-medium text-[var(--color-primary)] transition hover:gap-3"
+                      >
+                        Read more
+                        <span aria-hidden="true">→</span>
+                      </a>
+                    </div>
+                  </div>
+                </article>
+              <% }) %>
+            </div>
+
+            <% if (results.pagination && results.pagination.pages > 1) { %>
+              <nav class="mt-10 flex items-center justify-between gap-4 rounded-full border border-[var(--color-border)] bg-white px-4 py-2 text-sm text-[var(--color-text-muted)] shadow-sm shadow-black/5">
+                <% const hasPrev = results.pagination.page > 1; %>
+                <% const hasNext = results.pagination.page < results.pagination.pages; %>
+                <a
+                  href="<%= hasPrev ? `/search?q=${encodeURIComponent(term)}&page=${results.pagination.page - 1}` : '#' %>"
+                  class="inline-flex items-center gap-2 rounded-full px-3 py-1 font-medium transition <%= hasPrev ? 'text-[var(--color-primary)] hover:-translate-x-0.5' : 'pointer-events-none opacity-40' %>"
+                >
+                  <span aria-hidden="true">←</span>
+                  Previous
+                </a>
+                <div class="flex items-center gap-2">
+                  <span>Page <%= results.pagination.page %> of <%= results.pagination.pages %></span>
+                  <span class="hidden sm:inline">·</span>
+                  <span class="hidden sm:inline"><%= results.pagination.total %> entries</span>
+                </div>
+                <a
+                  href="<%= hasNext ? `/search?q=${encodeURIComponent(term)}&page=${results.pagination.page + 1}` : '#' %>"
+                  class="inline-flex items-center gap-2 rounded-full px-3 py-1 font-medium transition <%= hasNext ? 'text-[var(--color-primary)] hover:translate-x-0.5' : 'pointer-events-none opacity-40' %>"
+                >
+                  Next
+                  <span aria-hidden="true">→</span>
+                </a>
+              </nav>
+            <% } %>
+          </section>
+        <% } %>
+      </main>
+      <%- include('../partials/footer') %>
+    </div>
+  </body>
+</html>
+

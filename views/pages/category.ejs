@@ -29,7 +29,7 @@
             <% contents.forEach((item) => { %>
               <article class="group flex h-full flex-col overflow-hidden rounded-3xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-sm shadow-black/5 transition hover:-translate-y-1 hover:shadow-lg">
                 <% if (item.heroImage?.url) { %>
-                  <a href="/content/<%= item.slug %>?id=<%= item.id %>" class="aspect-[16/9] overflow-hidden">
+                  <a href="/content/<%= item.slug %>" class="aspect-[16/9] overflow-hidden">
                     <img
                       src="<%= item.heroImage.url %>"
                       alt="<%= item.heroImage.alt || item.title %>"
@@ -42,7 +42,7 @@
                     <%= item.formattedPublishDate || item.publishDate %>
                   </p>
                   <h2 class="text-lg font-semibold text-slate-900">
-                    <a href="/content/<%= item.slug %>?id=<%= item.id %>" class="transition hover:text-[var(--color-primary)]">
+                    <a href="/content/<%= item.slug %>" class="transition hover:text-[var(--color-primary)]">
                       <%= item.title %>
                     </a>
                   </h2>
@@ -51,7 +51,7 @@
                   </p>
                   <div class="mt-auto">
                     <a
-                      href="/content/<%= item.slug %>?id=<%= item.id %>"
+                      href="/content/<%= item.slug %>"
                       class="inline-flex items-center gap-2 text-sm font-medium text-[var(--color-primary)] transition hover:gap-3"
                     >
                       Read more
@@ -94,4 +94,3 @@
     </div>
   </body>
 </html>
-

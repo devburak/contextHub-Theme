@@ -1,0 +1,49 @@
+<div id="search-modal" class="fixed inset-0 z-50 hidden">
+  <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" data-search-close></div>
+  <div class="relative z-10 mx-auto flex h-full max-w-3xl flex-col justify-center px-4 py-16">
+    <div class="rounded-3xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-2xl shadow-black/40">
+      <div class="mb-4 flex items-center justify-between">
+        <h2 class="text-lg font-semibold text-slate-900">Search the site</h2>
+        <button
+          type="button"
+          class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[var(--color-border)] text-[var(--color-text-muted)] transition hover:text-[var(--color-primary)]"
+          aria-label="Close search"
+          data-search-close
+        >
+          <i data-lucide="x" class="h-5 w-5"></i>
+        </button>
+      </div>
+      <form action="/search" method="get" class="flex flex-col gap-4">
+        <div class="flex items-center gap-3 rounded-2xl border border-[var(--color-border)] bg-white px-4 py-3 shadow-sm shadow-black/5">
+          <i data-lucide="search" class="h-5 w-5 text-[var(--color-text-muted)]"></i>
+          <input
+            type="search"
+            name="q"
+            placeholder="Search for keywords, topics, or statements..."
+            class="flex-1 bg-transparent text-base text-[var(--color-text)] outline-none placeholder:text-[var(--color-text-muted)]"
+            autocomplete="off"
+          />
+        </div>
+        <p class="text-xs text-[var(--color-text-muted)]">
+          Tip: use keywords like <span class="font-semibold text-[var(--color-primary)]">May Day</span>, <span class="font-semibold text-[var(--color-primary)]">equality</span>, or <span class="font-semibold text-[var(--color-primary)]">statement</span>.
+        </p>
+        <div class="flex items-center justify-end gap-3">
+          <button
+            type="button"
+            class="rounded-full border border-[var(--color-border)] px-4 py-2 text-xs font-semibold uppercase tracking-widest text-[var(--color-text-muted)] transition hover:text-[var(--color-primary)]"
+            data-search-close
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            class="rounded-full bg-[var(--color-primary)] px-5 py-2 text-xs font-semibold uppercase tracking-widest text-white transition hover:bg-[var(--color-secondary)]"
+          >
+            Search
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+

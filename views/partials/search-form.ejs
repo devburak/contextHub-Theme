@@ -1,0 +1,24 @@
+<form action="/search" method="get" class="flex w-full max-w-xl items-center gap-3 rounded-full border border-[var(--color-border)] bg-white px-4 py-2 shadow-sm shadow-black/5">
+  <label for="site-search-input" class="sr-only">Search</label>
+  <div class="text-[var(--color-text-muted)]">
+    <i data-lucide="search" class="h-5 w-5"></i>
+  </div>
+  <input
+    id="site-search-input"
+    type="search"
+    name="q"
+    value="<%= term || '' %>"
+    placeholder="Search for news, statements, or reports..."
+    class="flex-1 bg-transparent text-sm text-[var(--color-text)] outline-none placeholder:text-[var(--color-text-muted)]"
+    autocomplete="off"
+  />
+  <% if (term) { %>
+    <a href="/search" class="text-xs font-medium uppercase tracking-widest text-[var(--color-primary)] hover:underline">
+      Clear
+    </a>
+  <% } %>
+  <button type="submit" class="rounded-full bg-[var(--color-primary)] px-4 py-2 text-xs font-semibold uppercase tracking-widest text-white transition hover:bg-[var(--color-secondary)]">
+    Search
+  </button>
+</form>
+

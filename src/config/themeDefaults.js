@@ -12,6 +12,7 @@ const defaultTheme = {
   borderColor: 'rgba(15, 23, 42, 0.12)',
   logoUrl: null,
   faviconUrl: null,
+  logoLayout: 'fullwidth',
   navigation: [
     { label: 'Home', href: '/' },
     {

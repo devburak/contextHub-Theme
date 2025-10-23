@@ -18,9 +18,14 @@ const {
   buildCategoryTrail
 } = require('./services/categoryService');
 const {
+  ensureMenu,
+  getMenu
+} = require('./services/menuService');
+const {
   getFeaturedContents,
   getContentsByCategory,
-  getContent
+  getContent,
+  searchContents
 } = require('./services/contentService');
 const { formatDate, buildShareUrl } = require('./utils/format');
 
@@ -43,15 +48,21 @@ app.use((req, res, next) => {
 });
 
 app.use((req, res, next) => {
-  ensureCategories()
-    .catch((error) => {
+  Promise.all([
+    ensureCategories().catch((error) => {
       console.error('Failed to refresh categories from API', error);
+      return null;
+    }),
+    ensureMenu().catch((error) => {
+      console.error('Failed to refresh menu from API', error);
+      return null;
     })
-    .finally(() => {
-      res.locals.categories = getTopLevelCategories();
-      res.locals.allCategories = getCategories();
-      next();
-    });
+  ]).finally(() => {
+    res.locals.categories = getTopLevelCategories();
+    res.locals.allCategories = getCategories();
+    res.locals.menu = getMenu();
+    next();
+  });
 });
 
 app.get('/healthz', (req, res) => {
@@ -102,8 +113,7 @@ app.get('/category/:slug', async (req, res, next) => {
 app.get('/content/:slug', async (req, res, next) => {
   try {
     const { slug } = req.params;
-    const contentId = req.query.id;
-    const content = await getContent({ id: contentId, slug });
+    const content = await getContent({ slug });
 
     if (!content) {
       return res.status(404).render('pages/not-found', {
@@ -120,13 +130,14 @@ app.get('/content/:slug', async (req, res, next) => {
     ];
 
     const categoryTrail = buildCategoryTrail(content.categoryIds);
-    const breadcrumbs = [
-      { label: 'Home', href: '/' },
-      ...(categoryTrail.length
-        ? [{ label: categoryTrail[0].name, href: `/category/${categoryTrail[0].slug}` }]
-        : []),
-      { label: content.title, href: null }
-    ];
+    const breadcrumbs =
+      categoryTrail.length > 0
+        ? [
+            { label: 'Home', href: '/' },
+            { label: categoryTrail[0].name, href: `/category/${categoryTrail[0].slug}` },
+            { label: content.title, href: null }
+          ]
+        : null;
 
     res.render('pages/content-detail', {
       content: {
@@ -135,6 +146,26 @@ app.get('/content/:slug', async (req, res, next) => {
         breadcrumbs,
         categories: categoryTrail
       }
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get('/search', async (req, res, next) => {
+  try {
+    const term = typeof req.query.q === 'string' ? req.query.q.trim() : '';
+    const page = Number(req.query.page || 1);
+    const limit = 12;
+    let results = { items: [], pagination: null };
+
+    if (term) {
+      results = await searchContents(term, { page, limit });
+    }
+
+    res.render('pages/search', {
+      term,
+      results
     });
   } catch (error) {
     next(error);
@@ -154,6 +185,9 @@ async function start() {
     await loadTenantInfo();
     await ensureCategories().catch((error) => {
       console.error('Failed to load initial categories:', error);
+    });
+    await ensureMenu().catch((error) => {
+      console.error('Failed to load initial menu:', error);
     });
   } catch (error) {
     console.error('Failed to load tenant info, falling back to defaults:', error);

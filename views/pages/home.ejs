@@ -8,23 +8,31 @@
       <main class="mx-auto w-full max-w-6xl flex-1 px-4 py-10">
         <% const allCategoryList = Array.isArray(allCategories) ? allCategories : []; %>
         <section class="mb-12 rounded-3xl border border-[var(--color-border)] bg-[var(--color-surface)] p-1 shadow-lg shadow-black/5">
-          <% const lead = featuredContents?.[0]; %>
-          <% const others = (featuredContents || []).slice(1, 4); %>
+          <% 
+            const lead = featuredContents?.[0]; 
+            const others = (featuredContents || []).slice(1, 4);
+            const findCategory = (contentItem) => {
+              if (!Array.isArray(contentItem?.categoryIds) || !contentItem.categoryIds.length) return null;
+              return allCategoryList.find((cat) => contentItem.categoryIds.includes(cat.id)) || null;
+            };
+          %>
 
           <% if (lead) { %>
-            <% const leadCategory = allCategoryList.find((cat) => Array.isArray(lead?.categoryIds) && lead.categoryIds.includes(cat.id)); %>
+            <% const leadCategory = findCategory(lead); %>
             <div class="grid gap-1 lg:grid-cols-[2.2fr,1fr]">
               <a
-                href="/content/<%= lead.slug %>?id=<%= lead.id %>"
+                href="/content/<%= lead.slug %>"
                 class="group relative block min-h-[320px] overflow-hidden rounded-3xl bg-slate-900 text-white"
                 style="<%= lead.heroImage?.url ? `background-image:url('${lead.heroImage.url}')` : '' %>"
               >
                 <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/35 to-transparent"></div>
                 <div class="absolute inset-0 transition duration-500 group-hover:scale-105" style="<%= lead.heroImage?.url ? `background-image:url('${lead.heroImage.url}')` : '' %>; background-size: cover; background-position: center;"></div>
                 <div class="relative z-10 flex h-full flex-col justify-end gap-3 p-8">
-                  <span class="inline-flex w-max items-center rounded-full bg-white/20 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-white/90 backdrop-blur">
-                    <%= leadCategory ? leadCategory.name : 'Featured' %>
-                  </span>
+                  <% if (leadCategory) { %>
+                    <span class="inline-flex w-max items-center rounded-full bg-white/20 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-white/90 backdrop-blur">
+                      <%= leadCategory.name %>
+                    </span>
+                  <% } %>
                   <h2 class="text-2xl font-semibold tracking-tight sm:text-3xl">
                     <%= lead.title %>
                   </h2>
@@ -36,9 +44,9 @@
 
               <div class="grid gap-1 md:grid-cols-2 lg:grid-cols-1">
                 <% others.forEach((item) => { %>
-                  <% const itemCategory = allCategoryList.find((cat) => Array.isArray(item?.categoryIds) && item.categoryIds.includes(cat.id)); %>
+                  <% const itemCategory = findCategory(item); %>
                   <a
-                    href="/content/<%= item.slug %>?id=<%= item.id %>"
+                    href="/content/<%= item.slug %>"
                     class="group relative flex min-h-[150px] flex-col overflow-hidden rounded-3xl border border-black/5 bg-white shadow-sm shadow-black/10 transition hover:-translate-y-1 hover:shadow-lg"
                   >
                     <% if (item.heroImage?.url) { %>
@@ -51,9 +59,11 @@
                       </div>
                     <% } %>
                     <div class="flex flex-1 flex-col gap-2 p-4">
-                      <p class="text-xs uppercase tracking-widest text-[var(--color-primary)]">
-                        <%= itemCategory ? itemCategory.name : 'Latest' %>
-                      </p>
+                      <% if (itemCategory) { %>
+                        <p class="text-xs uppercase tracking-widest text-[var(--color-primary)]">
+                          <%= itemCategory.name %>
+                        </p>
+                      <% } %>
                       <h3 class="text-base font-semibold text-slate-900">
                         <%= item.title %>
                       </h3>
@@ -91,10 +101,10 @@
             </header>
             <div class="grid gap-6 md:grid-cols-2">
               <% featuredContents.forEach((item) => { %>
-                <% const itemCategory = allCategoryList.find((cat) => Array.isArray(item?.categoryIds) && item.categoryIds.includes(cat.id)); %>
+                <% const itemCategory = findCategory(item); %>
                 <article class="group flex flex-col overflow-hidden rounded-3xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-sm shadow-black/5 transition hover:-translate-y-1 hover:shadow-lg">
                   <% if (item.heroImage?.url) { %>
-                    <a href="/content/<%= item.slug %>?id=<%= item.id %>" class="aspect-[16/9] overflow-hidden">
+                    <a href="/content/<%= item.slug %>" class="aspect-[16/9] overflow-hidden">
                       <img
                         src="<%= item.heroImage.url %>"
                         alt="<%= item.heroImage.alt || item.title %>"
@@ -103,14 +113,16 @@
                     </a>
                   <% } %>
                   <div class="flex flex-1 flex-col gap-3 p-6">
-                    <p class="text-xs uppercase tracking-widest text-[var(--color-primary)]">
-                      <%= itemCategory ? itemCategory.name : (item.formattedPublishDate || item.publishDate) %>
-                    </p>
+                    <% if (itemCategory) { %>
+                      <p class="text-xs uppercase tracking-widest text-[var(--color-primary)]">
+                        <%= itemCategory.name %>
+                      </p>
+                    <% } %>
                     <p class="text-xs text-[var(--color-text-muted)]">
                       <%= item.formattedPublishDate || item.publishDate %>
                     </p>
                     <h3 class="text-lg font-semibold text-slate-900">
-                      <a href="/content/<%= item.slug %>?id=<%= item.id %>" class="transition hover:text-[var(--color-primary)]">
+                      <a href="/content/<%= item.slug %>" class="transition hover:text-[var(--color-primary)]">
                         <%= item.title %>
                       </a>
                     </h3>
@@ -119,7 +131,7 @@
                     </p>
                     <div class="mt-auto">
                       <a
-                        href="/content/<%= item.slug %>?id=<%= item.id %>"
+                        href="/content/<%= item.slug %>"
                         class="inline-flex items-center gap-2 text-sm font-medium text-[var(--color-primary)] transition hover:gap-3"
                       >
                         Read more

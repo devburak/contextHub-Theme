@@ -15,6 +15,10 @@ const siteUrl =
   process.env.ctxSiteUrl ||
   defaultTheme.siteUrl;
 
+const envLogoLayout = (process.env.THEME_LOGO_LAYOUT || '').toLowerCase();
+const allowedLogoLayouts = new Set(['fullwidth', 'inline']);
+const logoLayout = allowedLogoLayouts.has(envLogoLayout) ? envLogoLayout : defaultTheme.logoLayout;
+
 function buildThemeFromBranding(branding = {}) {
   const theme = {
     ...defaultTheme,
@@ -22,7 +26,8 @@ function buildThemeFromBranding(branding = {}) {
     siteName: branding.siteName || branding.name || defaultTheme.siteName,
     brandName: branding.name || defaultTheme.brandName,
     logoUrl: branding.logoUrl || defaultTheme.logoUrl,
-    faviconUrl: branding.faviconUrl || defaultTheme.faviconUrl
+    faviconUrl: branding.faviconUrl || defaultTheme.faviconUrl,
+    logoLayout
   };
 
   const primary = normalizeHex(branding.primaryColor);

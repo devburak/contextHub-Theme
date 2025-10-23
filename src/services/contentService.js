@@ -203,5 +203,27 @@ async function getContent({ id, slug }) {
 module.exports = {
   getFeaturedContents,
   getContentsByCategory,
-  getContent
+  getContent,
+  searchContents: async function searchContents(query, { page = 1, limit = 12 } = {}) {
+    const term = typeof query === 'string' ? query.trim() : '';
+    if (!term) {
+      return { items: [], pagination: null };
+    }
+
+    const response = await request('/contents', {
+      searchParams: {
+        status: 'published',
+        search: term,
+        page,
+        limit
+      }
+    });
+
+    const items = normaliseCollection(response);
+
+    return {
+      items,
+      pagination: response?.pagination || null
+    };
+  }
 };

@@ -6,11 +6,12 @@ const slugIndex = new Map();
 const MAX_LOOKUP_PAGES = Number(process.env.CONTENT_LOOKUP_MAX_PAGES || 10);
 const PAGE_SIZE = Number(process.env.CONTENT_PAGE_SIZE || 50);
 
-function pickMedia(media) {
+function pickMedia(media, { prefer = null } = {}) {
   if (!media) return null;
 
   if (Array.isArray(media.variants) && media.variants.length > 0) {
     const preferred =
+      (prefer && media.variants.find((variant) => variant.name === prefer)) ||
       media.variants.find((variant) => variant.name === 'large') ||
       media.variants.find((variant) => variant.name === 'medium') ||
       media.variants[0];
@@ -54,13 +55,14 @@ function rememberContentMapping(content) {
   return content;
 }
 
-function normaliseListItem(item) {
+function normaliseListItem(item, { isLead = false } = {}) {
   const id = item._id || item.id;
   if (item.slug && id) {
     slugIndex.set(item.slug, id);
   }
 
-  const heroImage = pickMedia(item.featuredMediaId || item.featuredMedia);
+  const preferVariant = isLead ? 'large' : 'medium';
+  const heroImage = pickMedia(item.featuredMediaId || item.featuredMedia, { prefer: preferVariant });
   const publishDate = item.publishAt || item.publishedAt;
 
   return rememberContentMapping({
@@ -98,7 +100,7 @@ async function ensureTenantId() {
   return tenant?.id || tenant?._id || null;
 }
 
-function normaliseCollection(response) {
+function normaliseCollection(response, { isLead = false } = {}) {
   const rawItems =
     response?.items ||
     response?.contents ||
@@ -106,7 +108,9 @@ function normaliseCollection(response) {
     response?.results ||
     [];
 
-  return rawItems.filter(Boolean).map(normaliseListItem);
+  return rawItems
+    .filter(Boolean)
+    .map((item, index) => normaliseListItem(item, { isLead: isLead && index === 0 }));
 }
 
 async function getFeaturedContents(limit = 4) {
@@ -120,7 +124,7 @@ async function getFeaturedContents(limit = 4) {
     }
   });
 
-  return normaliseCollection(response);
+  return normaliseCollection(response, { isLead: true });
 }
 
 async function getContentsByCategory(categoryId, { page = 1, limit = 12 } = {}) {

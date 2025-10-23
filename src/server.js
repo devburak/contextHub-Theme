@@ -70,7 +70,7 @@ app.use((req, res, next) => {
   });
 });
 
-app.get('/healthz', (req, res) => {
+app.get('/health', (req, res) => {
   res.json({
     status: 'ok',
     tenant: res.locals.tenant?.slug || null
@@ -79,7 +79,7 @@ app.get('/healthz', (req, res) => {
 
 app.get('/', async (req, res, next) => {
   try {
-    const featuredContents = await getFeaturedContents(4);
+    const featuredContents = await getFeaturedContents(9);
     res.render('pages/home', {
       featuredContents
     });

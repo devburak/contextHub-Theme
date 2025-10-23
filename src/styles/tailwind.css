@@ -6,6 +6,13 @@
   body {
     @apply font-sans antialiased;
   }
+  a {
+    color: var(--color-primary);
+    transition: color 150ms ease;
+  }
+  a:hover {
+    color: var(--color-secondary);
+  }
   h1,
   h2,
   h3,

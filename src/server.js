@@ -53,14 +53,19 @@ app.use((req, res, next) => {
       console.error('Failed to refresh categories from API', error);
       return null;
     }),
-    ensureMenu().catch((error) => {
+    ensureMenu({ cacheKey: 'primary' }).catch((error) => {
       console.error('Failed to refresh menu from API', error);
+      return null;
+    }),
+    ensureMenu({ cacheKey: 'footer' }).catch((error) => {
+      console.error('Failed to refresh footer menu from API', error);
       return null;
     })
   ]).finally(() => {
     res.locals.categories = getTopLevelCategories();
     res.locals.allCategories = getCategories();
-    res.locals.menu = getMenu();
+    res.locals.menu = getMenu('primary');
+    res.locals.footerMenu = getMenu('footer');
     next();
   });
 });
@@ -186,8 +191,11 @@ async function start() {
     await ensureCategories().catch((error) => {
       console.error('Failed to load initial categories:', error);
     });
-    await ensureMenu().catch((error) => {
+    await ensureMenu({ cacheKey: 'primary' }).catch((error) => {
       console.error('Failed to load initial menu:', error);
+    });
+    await ensureMenu({ cacheKey: 'footer' }).catch((error) => {
+      console.error('Failed to load initial footer menu:', error);
     });
   } catch (error) {
     console.error('Failed to load tenant info, falling back to defaults:', error);

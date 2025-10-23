@@ -1,19 +1,35 @@
 const { request } = require('./apiClient');
 
 const MENU_CACHE_TTL_MS = Number(process.env.MENU_CACHE_TTL_MS || 5 * 60 * 1000);
-const menuSlugEnv =
-  process.env.THEME_MENU_SLUG ||
-  process.env.MENU_SLUG ||
-  null;
-const menuIdEnv =
-  process.env.THEME_MENU_ID ||
-  process.env.MENU_ID ||
-  null;
 
-let menuCache = {
-  menu: null,
-  fetchedAt: 0
+const envConfigs = {
+  primary: {
+    id:
+      process.env.THEME_MENU_ID ||
+      process.env.MENU_ID ||
+      null,
+    slug:
+      process.env.THEME_MENU_SLUG ||
+      process.env.MENU_SLUG ||
+      null
+  },
+  footer: {
+    id: process.env.THEME_FOOTER_MENU_ID || null,
+    slug: process.env.THEME_FOOTER_MENU_SLUG || null
+  }
 };
+
+const menuCache = new Map();
+
+function getCacheEntry(cacheKey) {
+  if (!menuCache.has(cacheKey)) {
+    menuCache.set(cacheKey, {
+      menu: null,
+      fetchedAt: 0
+    });
+  }
+  return menuCache.get(cacheKey);
+}
 
 function resolveUrl(item = {}) {
   if (item.url) return item.url;
@@ -132,43 +148,56 @@ async function fetchMenuById(id) {
   return shapeMenuResponse(response, tree);
 }
 
-async function ensureMenu({ force = false } = {}) {
+async function ensureMenu({ cacheKey = 'primary', id, slug, force = false } = {}) {
+  const entry = getCacheEntry(cacheKey);
   const now = Date.now();
+
+  const config = envConfigs[cacheKey] || {};
+  const resolvedId = id ?? config.id ?? null;
+  const resolvedSlug = slug ?? config.slug ?? null;
+
+  if (!resolvedId && !resolvedSlug) {
+    entry.menu = null;
+    entry.fetchedAt = now;
+    return null;
+  }
+
   const isCacheValid =
     !force &&
-    menuCache.menu &&
-    now - menuCache.fetchedAt < MENU_CACHE_TTL_MS;
+    entry.menu &&
+    now - entry.fetchedAt < MENU_CACHE_TTL_MS &&
+    ((resolvedId && entry.menu?.id === resolvedId) ||
+      (resolvedSlug && entry.menu?.slug === resolvedSlug));
 
   if (isCacheValid) {
-    return menuCache.menu;
+    return entry.menu;
   }
 
   try {
     let menu = null;
 
-    if (menuIdEnv) {
-      menu = await fetchMenuById(menuIdEnv);
+    if (resolvedId) {
+      menu = await fetchMenuById(resolvedId);
     }
 
-    if (!menu && menuSlugEnv) {
-      menu = await fetchMenuBySlug(menuSlugEnv);
+    if (!menu && resolvedSlug) {
+      menu = await fetchMenuBySlug(resolvedSlug);
     }
 
-    menuCache = {
-      menu,
-      fetchedAt: Date.now()
-    };
+    entry.menu = menu;
+    entry.fetchedAt = Date.now();
     return menu;
   } catch (error) {
-    if (menuCache.menu) {
-      return menuCache.menu;
+    if (entry.menu) {
+      return entry.menu;
     }
     throw error;
   }
 }
 
-function getMenu() {
-  return menuCache.menu;
+function getMenu(cacheKey = 'primary') {
+  const entry = menuCache.get(cacheKey);
+  return entry?.menu || null;
 }
 
 module.exports = {

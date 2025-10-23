@@ -1,25 +1,26 @@
 <footer class="border-t border-black/10 bg-[var(--color-secondary)] text-white">
-  <div class="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-6 text-sm text-white/80 sm:flex-row sm:items-center sm:justify-between">
-    <p>
-      © <%= new Date().getFullYear() %> <%= theme.siteName %>. Powered by contextHub.
-    </p>
-    <div class="flex items-center gap-3">
-      <% const footerLogo = theme.logoUrl || branding?.logoUrl; %>
-      <% if (footerLogo) { %>
-        <img
-          src="<%= footerLogo %>"
-          alt="<%= theme.siteName %> logo"
-          class="h-8 w-auto object-contain opacity-80"
-        />
-      <% } %>
-      <a
-        href="https://github.com/devburak/contextHub"
-        class="rounded-full border border-white/20 px-3 py-1 text-xs uppercase tracking-wide text-white/80 transition hover:border-white/40 hover:text-white"
-        target="_blank"
-        rel="noreferrer"
-      >
-        View source
-      </a>
-    </div>
+  <div class="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-6 text-sm text-white/80">
+    <p>© 2025 KESK English. Powered by contextHub.</p>
+    <% 
+      const primaryMenuId = menu?.id || null;
+      const footerMenuData = footerMenu && footerMenu.items && footerMenu.items.length
+        ? footerMenu
+        : null;
+    %>
+    <% if (footerMenuData && (!primaryMenuId || footerMenuData.id !== primaryMenuId)) { %>
+      <nav class="flex flex-wrap gap-3 text-xs uppercase tracking-[0.3em]">
+        <% footerMenuData.items.forEach((item) => {
+             if (!item || !item.href) return;
+        %>
+          <a
+            href="<%= item.href %>"
+            target="<%= item.target || '_self' %>"
+            class="inline-flex items-center gap-1 rounded-full border border-white/20 px-3 py-1 text-white/80 transition hover:border-white/40 hover:text-white"
+          >
+            <span><%= item.label %></span>
+          </a>
+        <% }) %>
+      </nav>
+    <% } %>
   </div>
 </footer>

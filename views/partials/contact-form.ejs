@@ -1,0 +1,291 @@
+<% const form = typeof contactForm !== 'undefined' ? contactForm : null; %>
+<% const state = typeof contactFormState !== 'undefined' && contactFormState ? contactFormState : null; %>
+<% const values = state?.values || {}; %>
+<% const errors = state?.errors || {}; %>
+<% const copy = (typeof contactFormCopy !== 'undefined' && contactFormCopy)
+  ? contactFormCopy
+  : {
+      locale: 'en',
+  submitButtonText: 'Submit',
+      selectPlaceholder: 'Select an option',
+      cooldownTextPrefix: 'Please wait',
+      cooldownTextSuffix: 'seconds before submitting again.',
+      honeypotLabel: 'Leave this field empty',
+      formTitleFallback: 'Contact Form',
+      formDescriptionFallback: 'Complete the form with your questions, suggestions, or feedback and we will respond as soon as possible.',
+      baselineFormTitleTr: 'İletişim Formu',
+      baselineFormDescriptionTr: 'Sorularınız, önerileriniz veya geri bildirimleriniz için formu doldurmanız yeterli. En kısa sürede size dönüş yapacağız.'
+    }; %>
+<% const hideForm = state?.status === 'success'; %>
+<% const widthClassMap = {
+  full: 'md:col-span-2',
+  half: 'md:col-span-1',
+  third: 'md:col-span-2 lg:col-span-1',
+  quarter: 'md:col-span-1 lg:col-span-1 xl:col-span-1'
+}; %>
+<% function getFieldValue(field) {
+  if (values[field.name] !== undefined) {
+    return values[field.name];
+  }
+  if (Array.isArray(field.defaultValue)) {
+    return field.defaultValue;
+  }
+  if (field.defaultValue && typeof field.defaultValue === 'object') {
+    return field.type === 'checkbox' ? [] : '';
+  }
+  return field.defaultValue ?? (field.type === 'checkbox' ? [] : '');
+} %>
+<% if (form) { %>
+<%
+  const submitButtonLabel = (() => {
+    const custom = form.settings?.submitButtonText;
+    if (!custom) {
+      return copy.submitButtonText;
+    }
+    const normalisedCustom = String(custom).trim();
+    if (copy.locale && copy.locale.startsWith('en') && normalisedCustom.toLowerCase() === 'gönder') {
+      return copy.submitButtonText;
+    }
+    return normalisedCustom;
+  })();
+
+  const trimValue = (value) => (value ? String(value).trim() : '');
+  const rawFormTitle = trimValue(form.title);
+  const rawFormDescription = trimValue(form.description);
+  const displayFormTitle = (() => {
+    if (copy.locale && copy.locale.startsWith('en')) {
+      const baselineTr = trimValue(copy.baselineFormTitleTr).toLowerCase();
+      if (!rawFormTitle) {
+        return copy.formTitleFallback || baselineTr || '';
+      }
+      if (baselineTr && rawFormTitle.toLowerCase() === baselineTr) {
+        return copy.formTitleFallback || rawFormTitle;
+      }
+    }
+    return rawFormTitle || copy.formTitleFallback || '';
+  })();
+
+  const displayFormDescription = (() => {
+    if (copy.locale && copy.locale.startsWith('en')) {
+      const baselineTr = trimValue(copy.baselineFormDescriptionTr).toLowerCase();
+      if (!rawFormDescription) {
+        return copy.formDescriptionFallback || baselineTr || '';
+      }
+      if (baselineTr && rawFormDescription.toLowerCase() === baselineTr) {
+        return copy.formDescriptionFallback || rawFormDescription;
+      }
+    }
+    return rawFormDescription || copy.formDescriptionFallback || '';
+  })();
+%>
+<section id="contact" class="mx-auto mb-16 max-w-6xl px-4">
+  <div class="rounded-3xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-sm shadow-black/5 sm:p-8">
+    <div class="mx-auto max-w-4xl space-y-6">
+      <header class="space-y-2">
+        <h2 class="text-2xl font-semibold text-slate-900"><%= displayFormTitle %></h2>
+        <% if (displayFormDescription) { %>
+          <p class="text-sm text-[var(--color-text-muted)]"><%= displayFormDescription %></p>
+        <% } %>
+      </header>
+
+      <% if (state?.status === 'success' && state.message) { %>
+        <div class="space-y-2 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800">
+          <p><%= state.message %></p>
+          <% if (state.cooldownRemainingMs > 0) { %>
+            <p
+              id="contact-form-countdown"
+              data-expires-at="<%= Number(state.cooldownExpiresAt || (Date.now() + state.cooldownRemainingMs)) %>"
+              class="text-xs text-emerald-700"
+            >
+              <%= copy.cooldownTextPrefix %>
+              <span data-countdown-value><%= Math.ceil(state.cooldownRemainingMs / 1000) %></span>
+              <%= copy.cooldownTextSuffix %>
+            </p>
+          <% } %>
+        </div>
+      <% } %>
+
+      <% if (state?.status === 'error' && state.message) { %>
+        <div class="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+          <%= state.message %>
+        </div>
+      <% } %>
+
+      <% if (!hideForm) { %>
+      <form method="post" action="/contact" class="space-y-6">
+        <div class="grid gap-6 md:grid-cols-2">
+          <% form.fields.forEach((field, index) => { %>
+            <% const fieldId = field.id || `${field.name}-${index}`; %>
+            <% const fieldValue = getFieldValue(field); %>
+            <% const fieldValueString = Array.isArray(fieldValue) ? '' : (fieldValue !== undefined && fieldValue !== null ? String(fieldValue) : ''); %>
+            <% const fieldError = errors[field.name]; %>
+            <% const widthClass = widthClassMap[field.width] || widthClassMap.full; %>
+            <% const describedByIds = []; %>
+            <% if (fieldError) { describedByIds.push(`${fieldId}-error`); } %>
+            <% if (field.helpText) { describedByIds.push(`${fieldId}-help`); } %>
+
+            <% if (field.type === 'hidden') { %>
+              <input type="hidden" name="<%= field.name %>" value="<%= fieldValueString %>" />
+              <% return; %>
+            <% } %>
+
+            <% if (field.type === 'section') { %>
+              <div class="md:col-span-2">
+                <h3 class="text-lg font-semibold text-slate-900"><%= field.label %></h3>
+                <% if (field.helpText) { %>
+                  <p id="<%= `${fieldId}-help` %>" class="mt-1 text-sm text-[var(--color-text-muted)]"><%= field.helpText %></p>
+                <% } %>
+              </div>
+              <% return; %>
+            <% } %>
+
+            <div class="space-y-2 <%= widthClass %>">
+              <label for="<%= fieldId %>" class="block text-sm font-medium text-slate-900">
+                <%= field.label %>
+                <% if (field.required) { %>
+                  <span class="text-red-500">*</span>
+                <% } %>
+              </label>
+
+              <% if (field.type === 'textarea') { %>
+                <textarea
+                  id="<%= fieldId %>"
+                  name="<%= field.name %>"
+                  rows="4"
+                  class="block w-full rounded-xl border bg-white px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/20 <%= fieldError ? 'border-red-400 focus:border-red-500 focus:ring-red-200' : 'border-[var(--color-border)]' %>"
+                  placeholder="<%= field.placeholder || '' %>"
+                  aria-invalid="<%= fieldError ? 'true' : 'false' %>"
+                  aria-describedby="<%= describedByIds.join(' ') %>"
+                ><%= fieldValueString %></textarea>
+              <% } else if (field.type === 'select') { %>
+                <select
+                  id="<%= fieldId %>"
+                  name="<%= field.name %>"
+                  class="block w-full rounded-xl border bg-white px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/20 <%= fieldError ? 'border-red-400 focus:border-red-500 focus:ring-red-200' : 'border-[var(--color-border)]' %>"
+                  aria-invalid="<%= fieldError ? 'true' : 'false' %>"
+                  aria-describedby="<%= describedByIds.join(' ') %>"
+                >
+                  <option value=""><%= field.placeholder || copy.selectPlaceholder %></option>
+                  <% field.options.forEach((option) => { %>
+                    <option value="<%= option.value %>" <%= fieldValueString === option.value ? 'selected' : '' %>><%= option.label %></option>
+                  <% }) %>
+                </select>
+              <% } else if (field.type === 'radio') { %>
+                <fieldset class="space-y-3" aria-describedby="<%= describedByIds.join(' ') %>">
+                  <% field.options.forEach((option, optionIndex) => { %>
+                    <% const optionId = `${fieldId}-${optionIndex}`; %>
+                    <label for="<%= optionId %>" class="flex items-start gap-2 text-sm text-slate-700">
+                      <input
+                        type="radio"
+                        id="<%= optionId %>"
+                        name="<%= field.name %>"
+                        value="<%= option.value %>"
+                        class="mt-1 h-4 w-4 border-[var(--color-border)] text-[var(--color-primary)] focus:ring-[var(--color-primary)]"
+                        <%= fieldValueString === option.value ? 'checked' : '' %>
+                      />
+                      <span><%= option.label %></span>
+                    </label>
+                  <% }) %>
+                </fieldset>
+              <% } else if (field.type === 'checkbox') { %>
+                <% const selectedValues = Array.isArray(fieldValue) ? fieldValue.map(String) : []; %>
+                <fieldset class="space-y-3" aria-describedby="<%= describedByIds.join(' ') %>">
+                  <% field.options.forEach((option, optionIndex) => { %>
+                    <% const optionId = `${fieldId}-${optionIndex}`; %>
+                    <label for="<%= optionId %>" class="flex items-start gap-2 text-sm text-slate-700">
+                      <input
+                        type="checkbox"
+                        id="<%= optionId %>"
+                        name="<%= field.name %>"
+                        value="<%= option.value %>"
+                        class="mt-1 h-4 w-4 rounded border-[var(--color-border)] text-[var(--color-primary)] focus:ring-[var(--color-primary)]"
+                        <%= selectedValues.includes(option.value) ? 'checked' : '' %>
+                      />
+                      <span><%= option.label %></span>
+                    </label>
+                  <% }) %>
+                </fieldset>
+              <% } else { %>
+                <% let inputType = 'text'; %>
+                <% if (field.type === 'email') { inputType = 'email'; } %>
+                <% if (field.type === 'phone') { inputType = 'tel'; } %>
+                <% if (field.type === 'number' || field.type === 'rating') { inputType = 'number'; } %>
+                <% if (field.type === 'date') { inputType = 'date'; } %>
+                <input
+                  id="<%= fieldId %>"
+                  type="<%= inputType %>"
+                  name="<%= field.name %>"
+                  value="<%= fieldValueString %>"
+                  placeholder="<%= field.placeholder || '' %>"
+                  class="block w-full rounded-xl border bg-white px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/20 <%= fieldError ? 'border-red-400 focus:border-red-500 focus:ring-red-200' : 'border-[var(--color-border)]' %>"
+                  aria-invalid="<%= fieldError ? 'true' : 'false' %>"
+                  aria-describedby="<%= describedByIds.join(' ') %>"
+                />
+              <% } %>
+
+              <% if (field.helpText && field.type !== 'section') { %>
+                <p id="<%= `${fieldId}-help` %>" class="text-xs text-[var(--color-text-muted)]"><%= field.helpText %></p>
+              <% } %>
+
+              <% if (fieldError) { %>
+                <p id="<%= `${fieldId}-error` %>" class="text-sm text-red-600"><%= fieldError %></p>
+              <% } %>
+            </div>
+          <% }); %>
+        </div>
+
+        <% if (form.settings?.enableHoneypot !== false) { %>
+          <div class="hidden">
+            <label>
+              <%= copy.honeypotLabel %>
+              <input type="text" name="honeypot" tabindex="-1" autocomplete="off" />
+            </label>
+          </div>
+        <% } %>
+
+        <div class="flex items-center justify-end">
+          <button
+            type="submit"
+            class="inline-flex items-center gap-2 rounded-full bg-[var(--color-primary)] px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
+          >
+            <%= submitButtonLabel %>
+          </button>
+        </div>
+      </form>
+      <% } %>
+      <% if (hideForm && state?.status === 'success' && state.cooldownRemainingMs > 0) { %>
+      <script>
+        (function() {
+          const countdownRoot = document.getElementById('contact-form-countdown');
+          if (!countdownRoot) return;
+          const valueEl = countdownRoot.querySelector('[data-countdown-value]');
+          if (!valueEl) return;
+          const expiresAt = Number(countdownRoot.dataset.expiresAt || 0);
+          if (!expiresAt) return;
+          const initialPathname = window.location.pathname;
+
+          let timerId = null;
+          function updateCountdown() {
+            const remainingSeconds = Math.max(0, Math.ceil((expiresAt - Date.now()) / 1000));
+            valueEl.textContent = String(remainingSeconds);
+            if (remainingSeconds <= 0) {
+              if (timerId) {
+                clearInterval(timerId);
+              }
+              setTimeout(() => {
+                if (window.location.pathname === initialPathname) {
+                  window.location.reload();
+                }
+              }, 1000);
+            }
+          }
+
+          updateCountdown();
+          timerId = setInterval(updateCountdown, 1000);
+        })();
+      </script>
+      <% } %>
+    </div>
+  </div>
+</section>
+<% } %>

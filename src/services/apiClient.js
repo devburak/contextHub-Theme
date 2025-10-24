@@ -24,7 +24,14 @@ function buildUrl(path, searchParams) {
   return url;
 }
 
-async function request(path, { method = 'GET', searchParams, body, headers = {}, allowNotFound = false } = {}) {
+async function request(path, {
+  method = 'GET',
+  searchParams,
+  body,
+  headers = {},
+  allowNotFound = false,
+  withApiKey = true
+} = {}) {
   const url = buildUrl(path, searchParams);
   const requestHeaders = new Headers({
     Accept: 'application/json',
@@ -32,7 +39,7 @@ async function request(path, { method = 'GET', searchParams, body, headers = {},
     ...headers
   });
 
-  if (apiKey) {
+  if (withApiKey && apiKey) {
     requestHeaders.set('Authorization', `Bearer ${apiKey}`);
   }
 

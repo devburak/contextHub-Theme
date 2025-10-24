@@ -1,0 +1,39 @@
+<% const copy = (typeof contactFormCopy !== 'undefined' && contactFormCopy)
+  ? contactFormCopy
+  : {
+      locale: 'en',
+      pageHeadTitle: 'Contact',
+      pageHeroTagline: 'Get in Touch',
+      pageHeroHeading: 'Contact Form',
+      pageHeroDescription: 'Share your questions, suggestions, or feedback and we will get back to you as soon as possible.',
+  submitButtonText: 'Submit',
+      selectPlaceholder: 'Select an option',
+      cooldownTextPrefix: 'Please wait',
+      cooldownTextSuffix: 'seconds before submitting again.',
+      honeypotLabel: 'Leave this field empty',
+      formTitleFallback: 'Contact Form',
+      formDescriptionFallback: 'Complete the form with your questions, suggestions, or feedback and we will respond as soon as possible.',
+      baselineFormTitleTr: 'İletişim Formu',
+      baselineFormDescriptionTr: 'Sorularınız, önerileriniz veya geri bildirimleriniz için formu doldurmanız yeterli. En kısa sürede size dönüş yapacağız.'
+    }; %>
+<%- include('../partials/head', {
+  title: copy.pageHeadTitle,
+  description: theme.hero?.description || tenant?.description || copy.pageHeroDescription
+}) %>
+  <body class="min-h-screen bg-[var(--color-background)] text-[var(--color-text)]">
+    <div class="flex min-h-screen flex-col">
+      <%- include('../partials/header') %>
+      <main class="mx-auto w-full flex-1">
+        <section class="relative mb-12 bg-[var(--color-surface)] py-12">
+          <div class="mx-auto max-w-4xl px-4 text-center">
+            <p class="text-sm font-semibold uppercase tracking-wide text-[var(--color-primary)]"><%= copy.pageHeroTagline %></p>
+            <h1 class="mt-3 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl"><%= copy.pageHeroHeading %></h1>
+            <p class="mt-4 text-base text-[var(--color-text-muted)]"><%= copy.pageHeroDescription %></p>
+          </div>
+        </section>
+  <%- include('../partials/contact-form', { contactForm, contactFormState, contactFormCopy: copy }) %>
+      </main>
+      <%- include('../partials/footer') %>
+    </div>
+  </body>
+</html>

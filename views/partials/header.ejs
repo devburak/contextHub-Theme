@@ -70,8 +70,8 @@
               <a
                 href="<%= item.href %>"
                 target="<%= item.target || '_self' %>"
-                class="inline-flex items-center gap-1 border border-white/10 px-3 py-1 transition
-                  <%= isActive ? 'bg-white text-[var(--color-primary)]' : 'hover:border-white/40 hover:text-white' %>"
+                 class="inline-flex items-center gap-1 border border-white/10 px-3 py-1 transition
+                  <%= isActive ? 'bg-white text-[var(--color-primary)]' : 'text-white hover:border-white/40 hover:text-white' %>"
               >
                 <span><%= item.label %></span>
                 <% if (item.children && item.children.length) { %>

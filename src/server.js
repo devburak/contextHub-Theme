@@ -505,7 +505,10 @@ app.get('/content/:slug', async (req, res, next) => {
       });
     }
 
-    const canonicalUrl = `${req.protocol}://${req.get('host')}/content/${content.slug}`;
+    // Always use https for canonical URLs and share links
+    const protocol = req.get('x-forwarded-proto') || req.protocol || 'https';
+    const scheme = protocol === 'http' ? 'https' : protocol;
+    const canonicalUrl = `${scheme}://${req.get('host')}/content/${content.slug}`;
     const shareLinks = [
       { provider: 'facebook', url: buildShareUrl('facebook', { title: content.title, url: canonicalUrl }) },
       { provider: 'x', url: buildShareUrl('x', { title: content.title, url: canonicalUrl }) },

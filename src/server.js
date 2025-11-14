@@ -138,6 +138,16 @@ app.use((req, res, next) => {
   res.locals.branding = getBranding();
   res.locals.formatDate = formatDate;
   res.locals.currentPath = req.path;
+  
+  // Debug: Logo URL
+  if (req.path === '/' || req.path === '') {
+    console.log('[DEBUG] Theme:', {
+      logoUrl: res.locals.theme?.logoUrl,
+      logoLayout: res.locals.theme?.logoLayout,
+      brandingLogoUrl: res.locals.branding?.logoUrl
+    });
+  }
+  
   next();
 });
 
@@ -563,7 +573,7 @@ app.use((err, req, res, next) => {
   console.error(err);
   res.status(500).render('pages/error', {
     message: 'Something went wrong while loading the site.',
-    error
+    error: err
   });
 });
 

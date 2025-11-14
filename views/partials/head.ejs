@@ -5,9 +5,13 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <% const pageTitle = title ? `${title} · ${theme.siteName}` : theme.siteName; %>
+    <% const pageDescription = typeof description === 'string' && description.trim()
+      ? description.trim()
+      : (theme.metaDescription || theme.description || '')
+    %>
     <title><%= pageTitle %></title>
-    <% if (description) { %>
-      <meta name="description" content="<%= description %>" />
+    <% if (pageDescription) { %>
+      <meta name="description" content="<%= pageDescription %>" />
     <% } %>
     <% if (tenant?.slug) { %>
       <meta name="contexthub-tenant" content="<%= tenant.slug %>" />

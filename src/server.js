@@ -332,22 +332,10 @@ app.post('/contact', async (req, res, next) => {
     const contactCopy = getContactCopy(localePreference, res);
     const ipAddress = getClientIp(req);
     const cooldownRemaining = getCooldownRemainingMs(ipAddress);
+
+    // If already in cooldown, redirect to GET (PRG pattern)
     if (cooldownRemaining > 0) {
-      const cooldownEntry = contactSubmissionCooldowns.get(ipAddress);
-      const contactFormDuringCooldown = await getContactForm({ locale: localePreference });
-      return renderContactPage(req, res, next, {
-        formState: {
-          status: 'success',
-          message: cooldownEntry?.message || contactCopy.cooldownDefaultMessage,
-          values: {},
-          errors: {},
-          localePreference: Array.isArray(localePreference) ? [...localePreference] : [],
-          cooldownRemainingMs: cooldownRemaining,
-          cooldownExpiresAt: Date.now() + cooldownRemaining
-        },
-        contactFormOverride: contactFormDuringCooldown,
-        localePreference
-      });
+      return res.redirect(303, '/contact');
     }
 
     const contactForm = await getContactForm({ locale: localePreference });
@@ -369,25 +357,13 @@ app.post('/contact', async (req, res, next) => {
     if (contactForm.settings?.enableHoneypot !== false && honeypotValue) {
       const successMessage = resolveText(contactForm.settings?.successMessage, localePreference);
       const cooldownUntil = Date.now() + CONTACT_SUBMISSION_COOLDOWN_MS;
-      const cooldownRemainingMs = Math.max(0, cooldownUntil - Date.now());
       contactSubmissionCooldowns.set(ipAddress, {
         allowAt: cooldownUntil,
         message: successMessage || contactCopy.successDefaultMessage
       });
 
-      return renderContactPage(req, res, next, {
-        formState: {
-          status: 'success',
-          message: successMessage || contactCopy.successDefaultMessage,
-          values: {},
-          errors: {},
-          localePreference: Array.isArray(localePreference) ? [...localePreference] : [],
-          cooldownRemainingMs,
-          cooldownExpiresAt: cooldownUntil
-        },
-        contactFormOverride: contactForm,
-        localePreference
-      });
+      // PRG pattern: redirect after successful submission (even honeypot)
+      return res.redirect(303, '/contact');
     }
 
     const { errors, values, data } = buildSubmissionPayload(contactForm, req.body || {}, {
@@ -423,25 +399,13 @@ app.post('/contact', async (req, res, next) => {
       );
 
       const cooldownUntil = Date.now() + CONTACT_SUBMISSION_COOLDOWN_MS;
-      const cooldownRemainingMs = Math.max(0, cooldownUntil - Date.now());
       contactSubmissionCooldowns.set(ipAddress, {
         allowAt: cooldownUntil,
         message: successMessage || contactCopy.successDefaultMessage
       });
 
-      return renderContactPage(req, res, next, {
-        formState: {
-          status: 'success',
-          message: successMessage || contactCopy.successDefaultMessage,
-          values: {},
-          errors: {},
-          localePreference: Array.isArray(localePreference) ? [...localePreference] : [],
-          cooldownRemainingMs,
-          cooldownExpiresAt: cooldownUntil
-        },
-        contactFormOverride: contactForm,
-        localePreference
-      });
+      // PRG pattern: redirect after successful submission
+      return res.redirect(303, '/contact');
     } catch (error) {
       let message = contactCopy.submissionErrorMessage;
 

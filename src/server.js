@@ -1,5 +1,6 @@
 require('dotenv').config();
 
+const crypto = require('crypto');
 const path = require('path');
 const express = require('express');
 const compression = require('compression');
@@ -29,6 +30,7 @@ const {
 } = require('./services/contentService');
 const {
   getContactForm,
+  clearContactFormCache,
   buildSubmissionPayload,
   submitContactForm,
   resolveText
@@ -37,6 +39,56 @@ const { formatDate, buildShareUrl } = require('./utils/format');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// ─── Webhook ─────────────────────────────────────────────────────────────────
+const CONTEXTHUB_WEBHOOK_SECRET = (
+  process.env.CTX_WEBHOOK_SECRET ||
+  process.env.CTXHUB_WEBHOOK_SECRET ||
+  process.env.WEBHOOK_SECRET ||
+  ''
+).trim();
+
+const WEBHOOK_REFRESH_EVENTS = new Set([
+  '*',
+  'content.created',
+  'content.updated',
+  'content.published',
+  'content.unpublished',
+  'content.deleted',
+  'category.created',
+  'category.updated',
+  'category.deleted',
+  'menu.created',
+  'menu.updated',
+  'menu.deleted',
+  'form.updated',
+  'tenantSettings.updated'
+]);
+
+function signWebhookPayload(secret, rawBody) {
+  const buffer = Buffer.isBuffer(rawBody) ? rawBody : Buffer.from(rawBody || '', 'utf8');
+  return crypto.createHmac('sha256', secret).update(buffer).digest('hex');
+}
+
+function verifyContextHubSignature(rawBody, providedSignature) {
+  if (!CONTEXTHUB_WEBHOOK_SECRET) return false;
+  const expected = signWebhookPayload(CONTEXTHUB_WEBHOOK_SECRET, rawBody);
+  if (!providedSignature || typeof providedSignature !== 'string') return false;
+  const a = Buffer.from(expected, 'utf8');
+  const b = Buffer.from(providedSignature.trim(), 'utf8');
+  if (a.length !== b.length) return false;
+  try {
+    return crypto.timingSafeEqual(a, b);
+  } catch {
+    return false;
+  }
+}
+
+function shouldRefresh(eventType) {
+  if (!eventType) return false;
+  return WEBHOOK_REFRESH_EVENTS.has(eventType) || typeof eventType === 'string';
+}
+// ─────────────────────────────────────────────────────────────────────────────
 
 const CONTACT_RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minute
 const CONTACT_RATE_LIMIT_MAX = 5; // Max 5 submissions per minute per IP
@@ -180,6 +232,82 @@ app.get('/health', (req, res) => {
     tenant: res.locals.tenant?.slug || null
   });
 });
+
+// ─── ContextHub Webhook ───────────────────────────────────────────────────────
+const contextHubWebhookParser = express.raw({ type: 'application/json', limit: '1mb' });
+
+app.post('/api/hooks/contexthub', contextHubWebhookParser, async (req, res) => {
+  if (!CONTEXTHUB_WEBHOOK_SECRET) {
+    return res.status(501).json({ ok: false, error: 'Webhook secret is not configured' });
+  }
+
+  const rawBody = Buffer.isBuffer(req.body) ? req.body : Buffer.from(req.body || '');
+  const providedSignature = req.get('x-ctxhub-signature') || req.get('X-CTXHUB-SIGNATURE') || '';
+
+  if (!verifyContextHubSignature(rawBody, providedSignature)) {
+    return res.status(401).json({ ok: false, error: 'Invalid signature' });
+  }
+
+  let payload = {};
+  try {
+    payload = rawBody.length ? JSON.parse(rawBody.toString('utf8')) : {};
+  } catch {
+    return res.status(400).json({ ok: false, error: 'Invalid JSON payload' });
+  }
+
+  const eventType = req.get('x-ctxhub-event') || req.get('X-CTXHUB-EVENT') || payload.type || 'unknown';
+  const tenantId = payload?.tenantId || null;
+
+  if (!shouldRefresh(eventType)) {
+    return res.json({ ok: true, event: eventType, tenantId, refreshed: false });
+  }
+
+  // 202 hemen dön, cache yenileme arka planda çalışsın
+  res.status(202).json({
+    ok: true,
+    event: eventType,
+    tenantId,
+    refreshed: 'pending',
+    message: 'Cache refresh started in background'
+  });
+
+  setImmediate(async () => {
+    try {
+      console.log('[Webhook] Cache refresh started', { event: eventType, tenantId });
+
+      const tasks = [
+        ensureCategories({ force: true }),
+        ensureMenu({ cacheKey: 'primary', force: true }),
+        ensureMenu({ cacheKey: 'footer', force: true })
+      ];
+
+      // Tenant ayarları değiştiyse branding/tema da yenile
+      if (eventType === 'tenantSettings.updated' || eventType === '*') {
+        tasks.push(loadTenantInfo());
+      }
+
+      // Form güncellemesi ya da genel olayda form cache'ini temizle
+      if (
+        eventType === 'form.updated' ||
+        eventType === '*' ||
+        eventType === 'tenantSettings.updated'
+      ) {
+        clearContactFormCache();
+      }
+
+      await Promise.allSettled(tasks);
+
+      console.log('[Webhook] Cache refresh completed', { event: eventType, tenantId });
+    } catch (error) {
+      console.error('[Webhook] Cache refresh failed', {
+        event: eventType,
+        tenantId,
+        error: error?.message || error
+      });
+    }
+  });
+});
+// ─────────────────────────────────────────────────────────────────────────────
 
 function buildLocalePreference(req, res, state) {
   const locales = new Set();

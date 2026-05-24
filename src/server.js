@@ -152,6 +152,18 @@ app.use((req, res, next) => {
 });
 
 app.use((req, res, next) => {
+  if ((process.env.MAINTENANCE || '').toLowerCase() === 'true') {
+    res.set('Retry-After', '3600');
+    return res.status(503).render('pages/maintenance', {
+      theme: res.locals.theme,
+      branding: res.locals.branding,
+      tenant: res.locals.tenant
+    });
+  }
+  next();
+});
+
+app.use((req, res, next) => {
   Promise.all([
     ensureCategories().catch((error) => {
       console.error('Failed to refresh categories from API', error);

@@ -23,7 +23,7 @@ const defaultTheme = {
         { label: 'Delegations', href: '/#delegations' }
       ]
     },
-    { label: 'Contact', href: '/#contact' }
+    { label: 'Contact', href: '/contact' }
   ],
   hero: {
     headline: 'Building peace, equality and democracy',
